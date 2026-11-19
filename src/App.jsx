@@ -445,10 +445,10 @@ const activeProfile = impersonatedWarga || userProfile;
         </div>
       )}
 
-      {/* Modal Preview Gambar */}
+{/* Modal Preview Gambar */}
       {previewImg && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center p-4"
           onClick={() => setPreviewImg(null)}
         >
           <div

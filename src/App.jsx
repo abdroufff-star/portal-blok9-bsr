@@ -161,6 +161,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [impersonatedWarga, setImpersonatedWarga] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Login State
   const [loginUsername, setLoginUsername] = useState("");

@@ -64,7 +64,7 @@ const CONFIG = {
   waBantuan: "6282230280004",
   bca: { bank: "Bank BCA", norek: "3301144677", an: "Abdur Rouf" },
   bri: { bank: "Bank BRI", norek: "628801016232530", an: "Abdur Rouf" },
-  qrisUrl: "/qris.jpg",
+  qrisUrl: "/qris.jpeg",
 };
 
 const BULAN_LIST = [

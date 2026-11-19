@@ -1,0 +1,23 @@
+@import "tailwindcss";
+/* Cegah halaman melebar/terpotong di HP & Tablet */
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Scroll tabel mulus di layar sentuh (HP/Tablet) */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Pastikan input di iPhone/Android tidak auto-zoom saat diklik */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

@@ -403,7 +403,7 @@ const downloadKwitansiPNG = (trx, wargaData = {}) => {
 // ==========================================
 // ADMIN: DENAH INTERAKTIF BLOK 9
 // ==========================================
-function AdminDenahBlok({ wargaOnly = [], pembayaranList = [] }) {
+function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], isAdmin = true }) {
   const [selectedWarga, setSelectedWarga] = useState(null);
   const [filterStatus, setFilterStatus] = useState("SEMUA");
   const [cariDenah, setCariDenah] = useState("");

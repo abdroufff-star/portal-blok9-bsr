@@ -1078,6 +1078,7 @@ const activeProfile = impersonatedWarga || userProfile;
     { id: "bayar", label: "Bayar Tagihan", icon: CreditCard },
     { id: "pengumuman", label: "Pengumuman", icon: Bell },
     { id: "tatib", label: "Tata Tertib", icon: BookOpen },
+    { id: "denah", label: "Denah Blok", icon: Users },
     { id: "pengaturan", label: "Pengaturan", icon: Settings },
   ];
 

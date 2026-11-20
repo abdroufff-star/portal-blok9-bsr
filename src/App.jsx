@@ -399,6 +399,283 @@ const downloadKwitansiPNG = (trx, wargaData = {}) => {
   img.onerror = () => renderCanvas(null);
   img.src = "/icon.svg";
 };
+
+// ==========================================
+// ADMIN: DENAH INTERAKTIF BLOK 9
+// ==========================================
+function AdminDenahBlok({ wargaOnly = [], pembayaranList = [] }) {
+  const [selectedWarga, setSelectedWarga] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("SEMUA");
+  const [cariDenah, setCariDenah] = useState("");
+
+  const now = new Date();
+  const tahunIni = now.getFullYear();
+  const bulanIni = now.getMonth() + 1; // 1 - 12
+  const iuran = (typeof CONFIG !== "undefined" && CONFIG.iuranPerBulan) || 25000;
+
+  const NAMA_BULAN = [
+    "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+    "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+  ];
+  const fmtYm = (ym) => {
+    const [y, m] = String(ym).split("-");
+    return `${NAMA_BULAN[Number(m) - 1] || m} ${y}`;
+  };
+  const fmtRp = (n) => "Rp " + Number(n || 0).toLocaleString("id-ID");
+
+  // Daftar bulan dari Januari sampai bulan saat ini
+  const bulanWajib = [];
+  for (let m = 1; m <= bulanIni; m++) {
+    bulanWajib.push(`${tahunIni}-${String(m).padStart(2, "0")}`);
+  }
+
+  // Ambil angka nomor rumah paling belakang untuk pengurutan (misal "Blok 9 / 12" -> 12)
+  const getNoRumah = (blok) => {
+    const match = String(blok || "").match(/(\d+)\s*$/);
+    return match ? parseInt(match[1], 10) : 9999;
+  };
+
+  // Hitung status & tunggakan tiap rumah
+  const dataDenah = wargaOnly
+    .map((w) => {
+      const uid = w.uid || w.id;
+      const trxWarga = pembayaranList.filter((p) => p.warga_uid === uid);
+
+      const bulanLunas = new Set();
+      const bulanProses = new Set();
+
+      trxWarga.forEach((t) => {
+        (t.bulan_dibayar || []).forEach((ym) => {
+          if (t.status === "Lunas") bulanLunas.add(ym);
+          else if (t.status === "Menunggu Verifikasi") bulanProses.add(ym);
+        });
+      });
+
+      const bulanNunggak = bulanWajib.filter((ym) => !bulanLunas.has(ym));
+      const isTidakAktif = w.status === "Tidak Aktif";
+
+      return {
+        ...w,
+        noRumah: getNoRumah(w.blok),
+        bulanNunggak: isTidakAktif ? [] : bulanNunggak,
+        bulanProses: Array.from(bulanProses),
+        totalNunggak: isTidakAktif ? 0 : bulanNunggak.length * iuran,
+        isTidakAktif,
+      };
+    })
+    .sort((a, b) => a.noRumah - b.noRumah);
+
+  // Filter pencarian & status
+  const filteredDenah = dataDenah.filter((w) => {
+    if (filterStatus === "LUNAS" && (w.bulanNunggak.length > 0 || w.isTidakAktif)) return false;
+    if (filterStatus === "NUNGGAK" && (w.bulanNunggak.length === 0 || w.isTidakAktif)) return false;
+    if (cariDenah.trim()) {
+      const q = cariDenah.trim().toLowerCase();
+      const cocok =
+        (w.nama || "").toLowerCase().includes(q) ||
+        (w.blok || "").toLowerCase().includes(q);
+      if (!cocok) return false;
+    }
+    return true;
+  });
+
+  const jmlLunas = dataDenah.filter((w) => !w.isTidakAktif && w.bulanNunggak.length === 0).length;
+  const jmlNunggak = dataDenah.filter((w) => !w.isTidakAktif && w.bulanNunggak.length > 0).length;
+
+  const getWarnaKartu = (w) => {
+    if (w.isTidakAktif) return "bg-gray-100 border-gray-300 text-gray-500";
+    if (w.bulanNunggak.length === 0) return "bg-emerald-50 border-emerald-400 text-emerald-900 hover:bg-emerald-100";
+    if (w.bulanNunggak.length <= 2) return "bg-amber-50 border-amber-400 text-amber-900 hover:bg-amber-100";
+    return "bg-red-50 border-red-400 text-red-900 hover:bg-red-100";
+  };
+
+  const getBadgeStatus = (w) => {
+    if (w.isTidakAktif) return { text: "Nonaktif", cls: "bg-gray-300 text-gray-700" };
+    if (w.bulanNunggak.length === 0) return { text: "LUNAS", cls: "bg-emerald-600 text-white" };
+    if (w.bulanNunggak.length <= 2) return { text: `-${w.bulanNunggak.length} Bln`, cls: "bg-amber-500 text-white" };
+    return { text: `-${w.bulanNunggak.length} Bln`, cls: "bg-red-600 text-white" };
+  };
+
+  const bukaWA = (w) => {
+    const pesan = encodeURIComponent(
+      `Assalamu'alaikum Bapak/Ibu *${w.nama}* (${w.blok}),\n\n` +
+      `Mengingatkan iuran kas BLOK 9 BSR sampai bulan *${NAMA_BULAN[bulanIni - 1]} ${tahunIni}* masih ada tunggakan *${w.bulanNunggak.length} bulan* sebesar *${fmtRp(w.totalNunggak)}*.\n` +
+      `Rincian: ${w.bulanNunggak.map(fmtYm).join(", ")}.\n\nTerima kasih 🙏`
+    );
+    let hp = String(w.hp || "").replace(/[^0-9]/g, "");
+    if (hp.startsWith("0")) hp = "62" + hp.slice(1);
+    window.open(hp ? `https://wa.me/${hp}?text=${pesan}` : `https://wa.me/?text=${pesan}`, "_blank");
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header & Ringkasan */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900">Denah Interaktif BLOK 9</h3>
+          <p className="text-xs sm:text-sm text-gray-500">
+            Status iuran s/d <b>{NAMA_BULAN[bulanIni - 1]} {tahunIni}</b>. Klik rumah untuk cek detail tunggakan.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            value={cariDenah}
+            onChange={(e) => setCariDenah(e.target.value)}
+            placeholder="Cari nama / no rumah..."
+            className="w-full sm:w-48 px-3 py-2 rounded-xl border border-gray-300 text-xs bg-white focus:ring-2 focus:ring-orange-500 outline-none"
+          />
+          <div className="flex rounded-xl overflow-hidden border border-gray-300 text-xs font-bold">
+            {[
+              ["SEMUA", `Semua (${dataDenah.length})`],
+              ["LUNAS", `Lunas (${jmlLunas})`],
+              ["NUNGGAK", `Nunggak (${jmlNunggak})`],
+            ].map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setFilterStatus(val)}
+                className={`px-3 py-2 ${
+                  filterStatus === val ? "bg-orange-500 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Legenda Warna */}
+      <div className="flex flex-wrap items-center gap-3 text-[11px] sm:text-xs bg-white p-3 rounded-xl border border-gray-200">
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Lunas</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-400 inline-block" /> Nunggak 1–2 Bln</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-500 inline-block" /> Nunggak ≥3 Bln</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-gray-300 inline-block" /> Tidak Aktif</span>
+      </div>
+
+      {/* Grid Kavling Denah (Responsif: 3 kolom di HP, 6-8 di Laptop) */}
+      <div className="bg-slate-50 p-3 sm:p-5 rounded-2xl border-2 border-dashed border-slate-300">
+        <div className="text-center text-[11px] font-bold tracking-widest text-slate-400 uppercase mb-3">
+          ━━━ JALAN UTAMA BLOK 9 BUMI SAFIR RAYA ━━━
+        </div>
+
+        {filteredDenah.length === 0 ? (
+          <div className="text-center py-8 text-sm text-gray-400">
+            Data rumah tidak ditemukan.
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
+            {filteredDenah.map((w) => {
+              const badge = getBadgeStatus(w);
+              return (
+                <button
+                  key={w.id}
+                  onClick={() => setSelectedWarga(w)}
+                  className={`p-2 sm:p-2.5 rounded-xl border-2 text-left transition-all shadow-sm active:scale-95 flex flex-col justify-between min-h-[82px] ${getWarnaKartu(w)}`}
+                >
+                  <div className="flex items-center justify-between gap-1 w-full">
+                    <span className="text-xs sm:text-sm font-black">
+                      No. {w.noRumah !== 9999 ? w.noRumah : "-"}
+                    </span>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold ${badge.cls}`}>
+                      {badge.text}
+                    </span>
+                  </div>
+                  <div className="mt-1.5">
+                    <div className="text-[10px] sm:text-xs font-bold leading-tight line-clamp-2">
+                      {w.nama || "-"}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Popup Detail Saat Rumah Diklik */}
+      {selectedWarga && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          onClick={() => setSelectedWarga(null)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-2 border-b pb-3">
+              <div>
+                <span className="text-xs font-bold text-orange-600 uppercase">{selectedWarga.blok}</span>
+                <h4 className="text-lg font-extrabold text-gray-900">{selectedWarga.nama}</h4>
+                <p className="text-xs text-gray-500">HP: {selectedWarga.hp || "-"}</p>
+              </div>
+              <button
+                onClick={() => setSelectedWarga(null)}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 font-bold text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            {selectedWarga.isTidakAktif ? (
+              <div className="p-4 rounded-xl bg-gray-100 text-center text-sm font-bold text-gray-600">
+                Status Rumah: Tidak Aktif
+              </div>
+            ) : selectedWarga.bulanNunggak.length === 0 ? (
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                <div className="text-emerald-700 font-extrabold text-base">✅ LUNAS</div>
+                <div className="text-xs text-emerald-600 mt-1">
+                  Sudah lunas sampai {NAMA_BULAN[bulanIni - 1]} {tahunIni}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-red-600 font-semibold">Total Tunggakan</div>
+                    <div className="text-lg font-black text-red-700">
+                      {selectedWarga.bulanNunggak.length} Bulan
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-red-600 font-semibold">Nominal</div>
+                    <div className="text-lg font-black text-red-700">
+                      {fmtRp(selectedWarga.totalNunggak)}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-xs font-bold text-gray-600 mb-1.5">
+                    Rincian Bulan Belum Bayar (s/d {NAMA_BULAN[bulanIni - 1]} {tahunIni}):
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedWarga.bulanNunggak.map((ym) => (
+                      <span
+                        key={ym}
+                        className="px-2.5 py-1 rounded-lg bg-red-100 text-red-700 text-xs font-bold"
+                      >
+                        {fmtYm(ym)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => bukaWA(selectedWarga)}
+                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm"
+                >
+                  💬 Ingatkan via WhatsApp
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 // ==========================================
 // KOMPONEN UTAMA
 // ==========================================

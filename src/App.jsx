@@ -2684,7 +2684,7 @@ function AdminWargaNunggak({ wargaOnly, pembayaranList }) {
 
   // Export Warga Nunggak ke Excel (.xlsx)
   const handleExportExcel = () => {
-    const rows = (w, idx) => ({
+    const rows = listNunggak.map((w, idx) => ({
       No: idx + 1,
       "Nama Lengkap": w.nama || "-",
       "Blok/No.": w.blok || "-",

@@ -403,10 +403,52 @@ const downloadKwitansiPNG = (trx, wargaData = {}) => {
 // ==========================================
 // ADMIN: DENAH INTERAKTIF BLOK 9
 // ==========================================
-function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], isAdmin = true }) {
+function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmin = true }) {
   const [selectedWarga, setSelectedWarga] = useState(null);
   const [filterStatus, setFilterStatus] = useState("SEMUA");
   const [cariDenah, setCariDenah] = useState("");
+  const [showFormCash, setShowFormCash] = useState(false);
+  const [bulanDipilih, setBulanDipilih] = useState([]);
+  const [ketCash, setKetCash] = useState("");
+  const [savingCash, setSavingCash] = useState(false);
+
+  const toggleBulanCash = (ym) => {
+    setBulanDipilih((prev) =>
+      prev.includes(ym) ? prev.filter((b) => b !== ym) : [...prev, ym]
+    );
+  };
+
+  const handleBayarCash = async () => {
+    if (!selectedWarga || bulanDipilih.length === 0) return;
+    setSavingCash(true);
+    try {
+      const totalNominal = bulanDipilih.length * iuran;
+      await addDoc(collection(db, "pembayaran"), {
+        warga_uid: selectedWarga.uid || selectedWarga.id,
+        wargaId: selectedWarga.id,
+        nama: selectedWarga.nama || "",
+        blok: selectedWarga.blok || "",
+        bulan_dibayar: bulanDipilih,
+        jumlahBulan: bulanDipilih.length,
+        nominal: totalNominal,
+        metode: "Cash",
+        status: "Lunas",
+        keterangan: ketCash.trim() || "Pembayaran Cash via Denah Admin",
+        tanggalBayar: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+      });
+      if (showToast) showToast(`Pembayaran Cash ${selectedWarga.nama} berhasil disimpan!`);
+      setShowFormCash(false);
+      setBulanDipilih([]);
+      setKetCash("");
+      setSelectedWarga(null);
+    } catch (err) {
+      console.error(err);
+      if (showToast) showToast("Gagal menyimpan pembayaran cash!", "error");
+    } finally {
+      setSavingCash(false);
+    }
+  };
 
   const now = new Date();
   const tahunIni = now.getFullYear();
@@ -758,6 +800,7 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], isAdmin = true })
     Sapa Warga
   </button>
 )}
+              </div>
             ) : (
               <div className="space-y-3">
                 <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between">
@@ -790,7 +833,85 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], isAdmin = true })
                     ))}
                   </div>
                 </div>
+{isAdmin && (
+                  <div className="pt-2 border-t border-gray-200 space-y-2.5">
+                    {!showFormCash ? (
+                      <button
+                        onClick={() => {
+                          setBulanDipilih([selectedWarga.bulanNunggak[0]]);
+                          setKetCash("");
+                          setShowFormCash(true);
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm"
+                      >
+                        💵 Bayar Cash
+                      </button>
+                    ) : (
+                      <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 space-y-2.5">
+                        <div className="text-xs font-extrabold text-orange-800">
+                          Pilih Bulan Bayar Cash:
+                        </div>
 
+                        {/* Pilihan Bulan Tunggakan */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedWarga.bulanNunggak.map((ym) => {
+                            const aktif = bulanDipilih.includes(ym);
+                            return (
+                              <button
+                                key={ym}
+                                type="button"
+                                onClick={() => toggleBulanCash(ym)}
+                                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${
+                                  aktif
+                                    ? "bg-orange-500 text-white border-orange-600"
+                                    : "bg-white text-gray-700 border-gray-300"
+                                }`}
+                              >
+                                {aktif ? "✓ " : ""}{fmtYm(ym)}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Total Nominal Otomatis */}
+                        <div className="text-xs font-bold text-gray-700 flex justify-between">
+                          <span>Total ({bulanDipilih.length} bln):</span>
+                          <span className="text-orange-700 font-black">
+                            {fmtRp(bulanDipilih.length * iuran)}
+                          </span>
+                        </div>
+
+                        {/* Input Keterangan */}
+                        <input
+                          type="text"
+                          value={ketCash}
+                          onChange={(e) => setKetCash(e.target.value)}
+                          placeholder="Keterangan (misal: Titip Pak RT / Lunas Tunai)..."
+                          className="w-full px-3 py-2 rounded-lg border border-orange-300 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        />
+
+                        {/* Tombol Simpan & Batal */}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowFormCash(false)}
+                            className="flex-1 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="button"
+                            disabled={savingCash || bulanDipilih.length === 0}
+                            onClick={handleBayarCash}
+                            className="flex-1 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-bold text-xs"
+                          >
+                            {savingCash ? "Menyimpan..." : "Simpan Cash"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <button
                   onClick={() => bukaWA(selectedWarga)}
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm"

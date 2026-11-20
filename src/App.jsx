@@ -3210,7 +3210,7 @@ function AdminDataWarga({ wargaOnly, showToast, onImpersonateWarga }) {
 
   const handleSaveEdit = async (e) => {
     e.preventDefault();
-    await updateDoc(doc(db, "data_warga", editing.id), {
+    const payload = {
       nama: editing.nama,
       blok: editing.blok,
       hp: editing.hp || "",
@@ -3219,9 +3219,32 @@ function AdminDataWarga({ wargaOnly, showToast, onImpersonateWarga }) {
       asal: editing.asal || "",
       isi_rumah: editing.isi_rumah || "",
       status: editing.status || "Aktif",
-    });
+    };
+
+    if (editing.id) {
+      await updateDoc(doc(db, "data_warga", editing.id), payload);
+      showToast("Data warga diperbarui.");
+    } else {
+      await addDoc(collection(db, "data_warga"), {
+        ...payload,
+        role: "warga",
+        createdAt: serverTimestamp(),
+      });
+      showToast("Warga baru berhasil ditambahkan.");
+    }
     setEditing(null);
-    showToast("Data warga diperbarui.");
+  };
+
+  const handleDeleteWarga = async (w) => {
+    if (!window.confirm(`Yakin ingin menghapus data warga "${w.nama}" (${w.blok})?`)) return;
+    try {
+      await deleteDoc(doc(db, "data_warga", w.id));
+      setEditing(null);
+      showToast(`Data ${w.nama} berhasil dihapus.`);
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal menghapus data warga!", "error");
+    }
   };
 
 const [searchWarga, setSearchWarga] = useState("");

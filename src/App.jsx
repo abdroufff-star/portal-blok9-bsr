@@ -2835,7 +2835,7 @@ const [searchNunggak, setSearchNunggak] = useState("");
               </tr>
             ) : (
               filteredNunggak.map((w) => {
-                const pesan = encodeURIComponent(
+                const rumah = (item.blok || item.noRumah || item.username || "").toLowerCase();
                   `Assalamu'alaikum ${w.nama} (${w.blok}), mengingatkan iuran kas Blok 9 BSR sebesar ${fmtRp(
                     w.totalNunggak
                   )} untuk ${w.bulanNunggak.length} bulan (${w.bulanNunggak

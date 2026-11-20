@@ -1727,6 +1727,7 @@ function AdminLaporanTagihan({ pembayaranList, wargaOnly, showToast }) {
   const tahunSekarang = new Date().getFullYear();
   const [tahun, setTahun] = useState(tahunSekarang);
   const [importing, setImporting] = useState(false);
+  const [searchLaporan, setSearchLaporan] = useState("");
 
   const fmtRp = (n) => "Rp " + Number(n || 0).toLocaleString("id-ID");
 

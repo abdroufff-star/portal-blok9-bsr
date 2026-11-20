@@ -2673,7 +2673,7 @@ function AdminWargaNunggak({ wargaOnly, pembayaranList }) {
 
   // Export Warga Nunggak ke Excel (.xlsx)
   const handleExportExcel = () => {
-    const rows = listNunggak.map((w, idx) => ({
+    const rows = (w, idx) => ({
       No: idx + 1,
       "Nama Lengkap": w.nama || "-",
       "Blok/No.": w.blok || "-",
@@ -2814,7 +2814,7 @@ const [searchNunggak, setSearchNunggak] = useState("");
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
-        <table className="w-full text-sm text-left">
+      <table className="w-full text-sm text-left">
           <thead className="bg-gray-50 text-xs text-gray-500 uppercase border-b border-gray-200">
             <tr>
               <th className="px-4 py-3">Nama Lengkap</th>
@@ -2825,14 +2825,16 @@ const [searchNunggak, setSearchNunggak] = useState("");
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {listNunggak.length === 0 ? (
+            {filteredNunggak.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
-                  Semua warga aktif sudah lunas sampai bulan ini!
+                  {searchNunggak
+                    ? "Data warga tidak ditemukan."
+                    : "Semua warga aktif sudah lunas sampai bulan ini!"}
                 </td>
               </tr>
             ) : (
-              listNunggak.map((w) => {
+              filteredNunggak.map((w) => {
                 const pesan = encodeURIComponent(
                   `Assalamu'alaikum ${w.nama} (${w.blok}), mengingatkan iuran kas Blok 9 BSR sebesar ${fmtRp(
                     w.totalNunggak

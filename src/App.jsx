@@ -152,7 +152,253 @@ const compressImageToBase64 = (file, maxWidth = 800, quality = 0.6) =>
     };
     reader.onerror = reject;
   });
+// Generator Kwitansi PNG otomatis sesuai desain BLOK 9 BSR
+const downloadKwitansiPNG = (trx, wargaData = {}) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 800;
+  canvas.height = 1120;
+  const ctx = canvas.getContext("2d");
 
+  const roundRect = (x, y, w, h, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  };
+
+  const renderCanvas = (logoImg = null) => {
+    // 1. Background putih & border biru
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, 800, 1120);
+
+    // Gelombang kiri atas (biru & kuning)
+    ctx.fillStyle = "#FFD100";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(280, 0);
+    ctx.quadraticCurveTo(100, 40, 0, 160);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#0B4DA2";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(240, 0);
+    ctx.quadraticCurveTo(90, 25, 0, 130);
+    ctx.closePath();
+    ctx.fill();
+
+    // Gelombang kanan bawah (biru & kuning)
+    ctx.fillStyle = "#FFD100";
+    ctx.beginPath();
+    ctx.moveTo(0, 1120);
+    ctx.lineTo(0, 1045);
+    ctx.quadraticCurveTo(400, 1015, 800, 980);
+    ctx.lineTo(800, 1120);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#0B4DA2";
+    ctx.beginPath();
+    ctx.moveTo(0, 1120);
+    ctx.lineTo(0, 1070);
+    ctx.quadraticCurveTo(420, 1045, 800, 1010);
+    ctx.lineTo(800, 1120);
+    ctx.closePath();
+    ctx.fill();
+
+    // Border luar biru
+    ctx.strokeStyle = "#0B4DA2";
+    ctx.lineWidth = 6;
+    roundRect(12, 12, 776, 1096, 24);
+    ctx.stroke();
+
+    // 2. Logo BLOK 9 BSR
+    if (logoImg) {
+      ctx.drawImage(logoImg, 310, 35, 180, 150);
+    } else {
+      ctx.fillStyle = "#0B2E59";
+      ctx.font = "900 44px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("BLOK 9 BSR", 400, 125);
+    }
+
+    // 3. Judul KWITANSI & Badge
+    ctx.fillStyle = "#0B2447";
+    ctx.font = "900 64px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("KWITANSI", 400, 255);
+
+    // Garis kuning kiri & kanan badge
+    ctx.fillStyle = "#F5B800";
+    ctx.fillRect(55, 293, 75, 5);
+    ctx.fillRect(670, 293, 75, 5);
+
+    // Pill badge biru border kuning
+    ctx.fillStyle = "#0B57A4";
+    roundRect(145, 270, 510, 50, 25);
+    ctx.fill();
+    ctx.strokeStyle = "#F5B800";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 26px sans-serif";
+    ctx.fillText("Pembayaran Iuran Bulanan", 400, 304);
+
+    // 4. Kotak Info Warga
+    ctx.fillStyle = "#F4F9FF";
+    roundRect(45, 345, 710, 235, 18);
+    ctx.fill();
+    ctx.strokeStyle = "#2E75B6";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    const nama = trx.nama || wargaData.nama || "-";
+    const blok = trx.blok || wargaData.blok || "-";
+    const hp = trx.hp || wargaData.hp || "-";
+    const bulanArr = trx.bulan_dibayar || [];
+    const jmlBulan = bulanArr.length || 1;
+    const bulanText = bulanArr.length > 0 ? bulanArr.join(", ") : "-";
+    const tglBayar = new Date().toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const metode = trx.metode || "Transfer / QRIS";
+
+    const infoRows = [
+      ["Nama", nama],
+      ["Blok", `(${blok})`],
+      ["HP", hp],
+      ["Bulan Dibayar", bulanText],
+      ["Tanggal Bayar", tglBayar],
+      ["Metode Bayar", metode],
+    ];
+
+    ctx.textAlign = "left";
+    infoRows.forEach(([label, val], idx) => {
+      const y = 385 + idx * 35;
+      ctx.fillStyle = "#1E293B";
+      ctx.font = "bold 22px sans-serif";
+      ctx.fillText(label, 85, y);
+      ctx.fillText(":", 315, y);
+      ctx.fillStyle = "#0F172A";
+      ctx.fillText(String(val).slice(0, 34), 340, y);
+    });
+
+    // 5. Tabel Rincian Nominal
+    const kasPaguyuban = 20000 * jmlBulan;
+    const kasBlok9 = 5000 * jmlBulan;
+    const total = Number(trx.nominal || kasPaguyuban + kasBlok9);
+    const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID");
+
+    // Header tabel
+    ctx.fillStyle = "#0B4DA2";
+    roundRect(45, 605, 710, 50, 12);
+    ctx.fill();
+    ctx.fillRect(45, 635, 710, 20);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 24px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Uraian", 265, 638);
+    ctx.fillText("Nominal", 620, 638);
+
+    // Baris 1 & 2
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(45, 655, 710, 100);
+
+    ctx.fillStyle = "#0F172A";
+    ctx.font = "bold 23px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`Kas Paguyuban BSR (20k x ${jmlBulan})`, 70, 690);
+    ctx.fillText(`Kas BLOK 9 (5k x ${jmlBulan})`, 70, 740);
+
+    ctx.textAlign = "right";
+    ctx.fillText(fmt(kasPaguyuban), 725, 690);
+    ctx.fillText(fmt(kasBlok9), 725, 740);
+
+    // Baris Total (Kuning)
+    ctx.fillStyle = "#FFD100";
+    roundRect(45, 755, 710, 60, 12);
+    ctx.fill();
+    ctx.fillRect(45, 755, 710, 20);
+
+    ctx.fillStyle = "#0B2447";
+    ctx.font = "900 28px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Total Tagihan", 265, 795);
+    ctx.textAlign = "right";
+    ctx.fillText(fmt(total), 725, 795);
+
+    // Garis tabel
+    ctx.strokeStyle = "#0B4DA2";
+    ctx.lineWidth = 2;
+    roundRect(45, 605, 710, 210, 12);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(490, 605);
+    ctx.lineTo(490, 815);
+    ctx.moveTo(45, 705);
+    ctx.lineTo(755, 705);
+    ctx.moveTo(45, 755);
+    ctx.lineTo(755, 755);
+    ctx.stroke();
+
+    // 6. Stempel LUNAS
+    ctx.save();
+    ctx.translate(400, 945);
+    ctx.rotate(-0.08);
+
+    ctx.strokeStyle = "#0B4DA2";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(0, 0, 95, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 82, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "#0B4DA2";
+    roundRect(-125, -30, 250, 60, 14);
+    ctx.fill();
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 38px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("✓ LUNAS", 0, 13);
+
+    ctx.fillStyle = "#0B2447";
+    ctx.font = "bold 18px sans-serif";
+    ctx.fillText("BLOK 9 BSR", 0, -48);
+    ctx.fillText("PEMBAYARAN", 0, 62);
+    ctx.restore();
+
+    // Download file PNG
+    const safeName = String(nama).replace(/[^a-zA-Z0-9]/g, "_");
+    const link = document.createElement("a");
+    link.download = `Kwitansi_Blok9_${safeName}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
+  // Muat logo /icon.svg terlebih dahulu
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => renderCanvas(img);
+  img.onerror = () => renderCanvas(null);
+  img.src = "/icon.svg";
+};
 // ==========================================
 // KOMPONEN UTAMA
 // ==========================================

@@ -599,8 +599,8 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-gray-300 inline-block" /> Tidak Aktif</span>
       </div>
 
-      {/* Denah 2 Baris + Jalan Blok 10/8, Gang Tengah, Area Masjid & Taman */}
-      <div className="bg-slate-50 p-3 sm:p-5 rounded-2xl border-2 border-dashed border-slate-300">
+      {/* Denah 2 Baris Rapi + Kompas Utara & Jalan Menyatu */}
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm">
         {filteredDenah.length === 0 ? (
           <div className="text-center py-8 text-sm text-gray-400">
             Data rumah tidak ditemukan.
@@ -608,17 +608,15 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
         ) : (
           <div className="overflow-x-auto pb-2">
             {(() => {
-              // Posisi gang/jalan tengah (di gambar setelah 17 rumah dari kanan = No. 33 & 34)
-              // Ubah angka 17 ini jika posisi gang di nomor rumah berbeda
-              const KOLOM_GANG = 17;
+              const KOLOM_GANG = 17; // Posisi gang setelah No. 33 & 34
 
               const kolomMap = {};
               filteredDenah.forEach((w) => {
                 const no = w.noRumah !== 9999 ? w.noRumah : 0;
                 const col = Math.ceil(no / 2);
                 if (!kolomMap[col]) kolomMap[col] = { atas: null, bawah: null };
-                if (no % 2 !== 0) kolomMap[col].atas = w; // Ganjil di atas
-                else kolomMap[col].bawah = w; // Genap di bawah
+                if (no % 2 !== 0) kolomMap[col].atas = w;
+                else kolomMap[col].bawah = w;
               });
 
               const semuaKolom = Object.keys(kolomMap)
@@ -637,7 +635,7 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
                   <button
                     key={w.id}
                     onClick={() => setSelectedWarga(w)}
-                    className={`w-24 sm:w-28 shrink-0 p-2 rounded-xl border-2 text-left transition-all shadow-sm active:scale-95 flex flex-col justify-between min-h-[82px] ${getWarnaKartu(w)}`}
+                    className={`w-24 sm:w-28 shrink-0 p-2 rounded-xl border text-left transition-all shadow-sm hover:shadow active:scale-95 flex flex-col justify-between min-h-[82px] ${getWarnaKartu(w)}`}
                   >
                     <div className="flex items-center justify-between gap-1 w-full">
                       <span className="text-xs sm:text-sm font-black">
@@ -648,7 +646,7 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
                       </span>
                     </div>
                     <div className="mt-1.5">
-                      <div className="text-[10px] sm:text-xs font-bold leading-tight line-clamp-2">
+                      <div className="text-[10px] sm:text-xs font-bold leading-tight line-clamp-2 uppercase">
                         {w.nama || "-"}
                       </div>
                     </div>
@@ -657,99 +655,135 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
               };
 
               return (
-                <div className="inline-flex flex-col min-w-full gap-2">
-                  {/* LABEL ATAS: JALAN BLOK 10 */}
-                  <div className="text-center text-[11px] font-black tracking-[0.25em] text-slate-500 uppercase py-1 bg-slate-200/60 rounded-lg">
-                    JALAN BLOK 10
+                <div className="inline-flex items-stretch min-w-full">
+                  {/* KOMPAS UTARA (POJOK KIRI ATAS) */}
+                  <div className="w-11 shrink-0 flex flex-col items-center justify-start pt-2 pr-2 select-none">
+                    <span className="text-[11px] font-black text-slate-800 tracking-wider leading-none mb-1">
+                      UTARA
+                    </span>
+                    <svg viewBox="0 0 24 28" className="w-6 h-7 text-red-600 fill-current">
+                      <path d="M12 1 L22 25 L12 18 L2 25 Z" />
+                    </svg>
                   </div>
 
-                  {/* AREA UTAMA DENAH */}
-                  <div className="flex items-stretch gap-2">
-                    {/* UJUNG KIRI (BELAKANG): TAMAN & JALAN */}
-                    <div className="w-14 sm:w-16 shrink-0 flex flex-col justify-between gap-2">
-                      <div className="flex-1 rounded-xl bg-emerald-100 border-2 border-emerald-400 flex items-center justify-center p-1">
-                        <span className="text-[10px] font-black text-emerald-800 tracking-widest uppercase [writing-mode:vertical-rl] rotate-180">
-                          🌳 TAMAN
-                        </span>
+                  {/* KONTAINER UTAMA DENAH + JARINGAN JALAN */}
+                  <div className="flex flex-col flex-1">
+                    {/* BARIS 1: JALAN BLOK 10 (ATAS) */}
+                    <div className="flex items-stretch">
+                      {/* TAMAN (menyambung dari atas sampai tepi Jalan Blok 9) */}
+                      <div className="w-14 shrink-0 mr-2 flex flex-col">
+                        <div className="flex-1 rounded-xl bg-emerald-50 border-2 border-emerald-300 flex items-center justify-center p-1 shadow-sm">
+                          <span className="text-[10px] font-black text-emerald-800 tracking-widest uppercase [writing-mode:vertical-rl] rotate-180">
+                            🌳 TAMAN
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex-1 rounded-xl bg-slate-200 border-2 border-dashed border-slate-400 flex items-center justify-center p-1">
-                        <span className="text-[10px] font-black text-slate-600 tracking-widest uppercase [writing-mode:vertical-rl] rotate-180">
+
+                      {/* AREA ATAS + KAVLING GANJIL */}
+                      <div className="flex flex-col flex-1">
+                        {/* JALAN BLOK 10 */}
+                        <div className="bg-slate-200/80 py-1.5 px-6 flex items-center justify-around text-[10px] font-bold tracking-[0.25em] text-slate-500 uppercase rounded-tl-md">
+                          <span>JALAN BLOK 10</span>
+                          <span>JALAN BLOK 10</span>
+                          <span>JALAN BLOK 10</span>
+                          <span>JALAN BLOK 10</span>
+                          <span>JALAN BLOK 10</span>
+                        </div>
+
+                        {/* DERETAN RUMAH GANJIL + GANG TENGAH */}
+                        <div className="flex items-stretch">
+                          {/* Kiri Gang (Ganjil) */}
+                          <div className="flex items-stretch gap-2 py-2.5 pr-2.5">
+                            {kolomKiri.map((col) => (
+                              <div key={`atas-${col}`}>{renderRumah(kolomMap[col].atas)}</div>
+                            ))}
+                          </div>
+
+                          {/* Gang Tengah (Atas) */}
+                          {kolomKiri.length > 0 && kolomKanan.length > 0 && (
+                            <div className="w-9 shrink-0 bg-slate-200/80" />
+                          )}
+
+                          {/* Kanan Gang (Ganjil) */}
+                          <div className="flex items-stretch gap-2 py-2.5 pl-2.5 pr-2.5">
+                            {kolomKanan.map((col) => (
+                              <div key={`atas-${col}`}>{renderRumah(kolomMap[col].atas)}</div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* JALAN UJUNG KANAN (BAGIAN ATAS) */}
+                      <div className="w-8 shrink-0 bg-slate-200/80 rounded-tr-md" />
+                    </div>
+
+                    {/* BARIS 2: JALAN BLOK 9 (TENGAH MENYATU) */}
+                    <div className="flex items-stretch bg-slate-200/80 border-y border-dashed border-slate-300">
+                      <div className="w-16 shrink-0" />
+                      <div className="flex-1 py-2 px-6 flex items-center justify-around text-[11px] font-extrabold tracking-[0.25em] text-slate-600 uppercase">
+                        <span>JALAN BLOK 9</span>
+                        <span>JALAN BLOK 9</span>
+                        <span>JALAN BLOK 9</span>
+                        <span>JALAN BLOK 9</span>
+                        <span>JALAN BLOK 9</span>
+                      </div>
+                      <div className="w-8 shrink-0 flex items-center justify-center">
+                        <span className="text-[10px] font-extrabold text-slate-600 tracking-widest uppercase [writing-mode:vertical-rl] rotate-180">
                           JALAN
                         </span>
                       </div>
                     </div>
 
-                    {/* DERETAN RUMAH + JALAN TENGAH */}
-                    <div className="flex flex-col flex-1">
-                      {/* BARIS ATAS (GANJIL) */}
-                      <div className="flex items-stretch gap-2 justify-end">
-                        {kolomKiri.map((col) => (
-                          <div key={`atas-${col}`}>{renderRumah(kolomMap[col].atas)}</div>
-                        ))}
+                    {/* BARIS 3: KAVLING GENAP + AREA MASJID + JALAN BLOK 8 */}
+                    <div className="flex items-stretch">
+                      {/* JALAN UJUNG KIRI BAWAH */}
+                      <div className="w-14 shrink-0 mr-2 bg-slate-200/80 rounded-b-md" />
 
-                        {/* JALAN TENGAH (ATAS) */}
-                        {kolomKiri.length > 0 && kolomKanan.length > 0 && (
-                          <div className="w-10 shrink-0 rounded-lg bg-slate-200/90 border-x-2 border-dashed border-slate-400 flex items-center justify-center">
-                            <span className="text-[10px] font-black text-slate-600 tracking-widest uppercase [writing-mode:vertical-rl] rotate-180">
-                              JALAN
-                            </span>
-                          </div>
-                        )}
+                      {/* KIRI GANG (GENAP + AREA MASJID) */}
+                      <div className="flex flex-col">
+                        <div className="flex items-stretch gap-2 py-2.5 pr-2.5">
+                          {kolomKiri.map((col) => (
+                            <div key={`bawah-${col}`}>{renderRumah(kolomMap[col].bawah)}</div>
+                          ))}
 
-                        {kolomKanan.map((col) => (
-                          <div key={`atas-${col}`}>{renderRumah(kolomMap[col].atas)}</div>
-                        ))}
+                          {/* AREA MASJID */}
+                          {kolomKiri.length > 0 && kolomKanan.length > 0 && (
+                            <div className="w-44 sm:w-52 shrink-0 min-h-[82px] rounded-xl bg-sky-50 border-2 border-sky-400 flex flex-col items-center justify-center px-2 text-center shadow-sm">
+                              <span className="text-base">🕌</span>
+                              <span className="text-[11px] sm:text-xs font-black text-sky-900 uppercase tracking-wider">
+                                AREA MASJID
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Ruang kosong di bawah sisi kiri */}
+                        <div className="h-6" />
                       </div>
 
-                      {/* JALAN UTAMA BLOK 9 */}
-                      <div className="my-2.5 py-2 px-4 rounded-lg bg-slate-200/90 border-y-2 border-dashed border-slate-400 flex items-center justify-between text-[11px] sm:text-xs font-black tracking-[0.2em] text-slate-600 uppercase">
-                        <span>← TAMAN / BELAKANG</span>
-                        <span>JALAN BLOK 9</span>
-                        <span>MASUK (NO. 1 & 2) →</span>
+                      {/* GANG TENGAH (BAWAH) */}
+                      {kolomKiri.length > 0 && kolomKanan.length > 0 && (
+                        <div className="w-9 shrink-0 bg-slate-200/80 rounded-bl-md" />
+                      )}
+
+                      {/* KANAN GANG (GENAP + JALAN BLOK 8 DI BAWAHNYA) */}
+                      <div className="flex flex-col flex-1">
+                        <div className="flex items-stretch gap-2 py-2.5 pl-2.5 pr-2.5">
+                          {kolomKanan.map((col) => (
+                            <div key={`bawah-${col}`}>{renderRumah(kolomMap[col].bawah)}</div>
+                          ))}
+                        </div>
+
+                        {/* JALAN BLOK 8 */}
+                        <div className="h-6 bg-slate-200/80 px-6 flex items-center justify-around text-[10px] font-bold tracking-[0.25em] text-slate-500 uppercase">
+                          <span>JALAN BLOK 8</span>
+                          <span>JALAN BLOK 8</span>
+                          <span>JALAN BLOK 8</span>
+                        </div>
                       </div>
 
-                      {/* BARIS BAWAH (GENAP) */}
-                      <div className="flex items-stretch gap-2 justify-end">
-                        {kolomKiri.map((col) => (
-                          <div key={`bawah-${col}`}>{renderRumah(kolomMap[col].bawah)}</div>
-                        ))}
-
-                        {/* AREA MASJID (sebelah kiri jalan tengah) */}
-                        {kolomKiri.length > 0 && kolomKanan.length > 0 && (
-                          <div className="w-40 sm:w-48 shrink-0 min-h-[82px] rounded-xl bg-sky-100 border-2 border-sky-400 flex flex-col items-center justify-center px-2 text-center shadow-sm">
-                            <span className="text-base">🕌</span>
-                            <span className="text-[11px] sm:text-xs font-black text-sky-900 uppercase tracking-wider">
-                              AREA MASJID
-                            </span>
-                          </div>
-                        )}
-
-                        {/* JALAN TENGAH (BAWAH) */}
-                        {kolomKiri.length > 0 && kolomKanan.length > 0 && (
-                          <div className="w-10 shrink-0 rounded-lg bg-slate-200/90 border-x-2 border-dashed border-slate-400 flex items-center justify-center">
-                            <span className="text-[10px] font-black text-slate-600 tracking-widest uppercase [writing-mode:vertical-rl] rotate-180">
-                              JALAN
-                            </span>
-                          </div>
-                        )}
-
-                        {kolomKanan.map((col) => (
-                          <div key={`bawah-${col}`}>{renderRumah(kolomMap[col].bawah)}</div>
-                        ))}
-                      </div>
+                      {/* JALAN UJUNG KANAN (BAGIAN BAWAH) */}
+                      <div className="w-8 shrink-0 bg-slate-200/80 rounded-br-md" />
                     </div>
-
-                    {/* UJUNG KANAN (DEPAN): JALAN */}
-                    <div className="w-10 sm:w-12 shrink-0 rounded-xl bg-slate-200 border-2 border-dashed border-slate-400 flex items-center justify-center">
-                      <span className="text-[10px] font-black text-slate-600 tracking-widest uppercase [writing-mode:vertical-rl] rotate-180">
-                        JALAN
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* LABEL BAWAH: JALAN BLOK 8 */}
-                  <div className="text-center text-[11px] font-black tracking-[0.25em] text-slate-500 uppercase py-1 bg-slate-200/60 rounded-lg">
-                    JALAN BLOK 8
                   </div>
                 </div>
               );

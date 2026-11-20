@@ -948,6 +948,7 @@ const activeProfile = impersonatedWarga || userProfile;
     { id: "laporan", label: "Laporan Tagihan", icon: FileText },
     { id: "warga", label: "Data Warga", icon: Users },
     { id: "nunggak", label: "Warga Nunggak", icon: AlertTriangle },
+    { id: "denah", label: "Denah Blok", icon: Users },
     { id: "setor", label: "Setor Kas", icon: ArrowUpCircle },
     { id: "pengumuman", label: "Pengumuman", icon: Bell },
     { id: "tatib", label: "Tata Tertib", icon: BookOpen },

@@ -497,11 +497,14 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], isAdmin = true })
   };
 
   const bukaWA = (w) => {
-    const pesan = encodeURIComponent(
-      `Assalamu'alaikum Bapak/Ibu *${w.nama}* (${w.blok}),\n\n` +
-      `Mengingatkan iuran kas BLOK 9 BSR sampai bulan *${NAMA_BULAN[bulanIni - 1]} ${tahunIni}* masih ada tunggakan *${w.bulanNunggak.length} bulan* sebesar *${fmtRp(w.totalNunggak)}*.\n` +
-      `Rincian: ${w.bulanNunggak.map(fmtYm).join(", ")}.\n\nTerima kasih 🙏`
-    );
+    const teksPesan = isAdmin
+      ? `Assalamu'alaikum Bapak/Ibu *${w.nama}* (${w.blok}),\n\n` +
+        `Mengingatkan iuran kas BLOK 9 BSR sampai bulan *${NAMA_BULAN[bulanIni - 1]} ${tahunIni}* masih ada tunggakan *${w.bulanNunggak.length} bulan* sebesar *${fmtRp(w.totalNunggak)}*.\n` +
+        `Rincian: ${w.bulanNunggak.map(fmtYm).join(", ")}.\n\nTerima kasih 🙏`
+      : `Assalamu'alaikum Bapak/Ibu *${w.nama}* (${w.blok}),\n\n` +
+        `Apa kabar? Salam silaturahmi sesama warga BLOK 9 BSR 🙏`;
+
+    const pesan = encodeURIComponent(teksPesan);
     let hp = String(w.hp || "").replace(/[^0-9]/g, "");
     if (hp.startsWith("0")) hp = "62" + hp.slice(1);
     window.open(hp ? `https://wa.me/${hp}?text=${pesan}` : `https://wa.me/?text=${pesan}`, "_blank");

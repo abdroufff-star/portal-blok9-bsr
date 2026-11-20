@@ -1990,6 +1990,16 @@ function AdminLaporanTagihan({ pembayaranList, wargaOnly, showToast }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-56">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchLaporan}
+              onChange={(e) => setSearchLaporan(e.target.value)}
+              placeholder="Cari nama / no rumah..."
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+            />
+          </div>
           <select
             value={tahun}
             onChange={(e) => setTahun(Number(e.target.value))}
@@ -2054,7 +2064,17 @@ function AdminLaporanTagihan({ pembayaranList, wargaOnly, showToast }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {wargaOnly.map((w) => (
+            {wargaOnly
+              .filter((w) => {
+                if (!searchLaporan.trim()) return true;
+                const q = searchLaporan.trim().toLowerCase();
+                return (
+                  (w.nama || "").toLowerCase().includes(q) ||
+                  (w.blok || "").toLowerCase().includes(q) ||
+                  (w.username || "").toLowerCase().includes(q)
+                );
+              })
+              .map((w) => (
               <tr key={w.id} className="hover:bg-gray-50">
                 <td className="px-3 py-3 sticky left-0 bg-white z-10 whitespace-nowrap">
                   <div className="font-bold text-gray-900">{w.nama}</div>

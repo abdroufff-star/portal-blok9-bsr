@@ -3290,7 +3290,8 @@ const [searchWarga, setSearchWarga] = useState("");
          onClick={() =>
            setEditing({
              nama: "",
-             blok: "Blok 9 No. ",
+             blok: "Blok 9 / ",
+             username: "",
              hp: "",
              status_rumah: "Milik Sendiri",
              wifi: "",
@@ -3343,7 +3344,18 @@ const [searchWarga, setSearchWarga] = useState("");
                 className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm"
               />
             </div>
-
+<div>
+             <label className="block text-xs font-semibold text-gray-600 mb-1">
+               Username
+             </label>
+             <input
+               type="text"
+               placeholder="Contoh: warga56"
+               value={editing.username || ""}
+               onChange={(e) => setEditing({ ...editing, username: e.target.value })}
+               className="w-full px-3.5 py-2 rounded-xl border border-gray-300 text-sm"
+             />
+           </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">

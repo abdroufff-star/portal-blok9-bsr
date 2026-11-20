@@ -1421,11 +1421,13 @@ const activeProfile = impersonatedWarga || userProfile;
                 />
               )}
               {activeTab === "denah" && (
-            <AdminDenahBlok
-              wargaOnly={wargaOnly}
-              pembayaranList={pembayaranList}
-            />
-          )}
+                <AdminDenahBlok
+                wargaOnly={wargaOnly}
+                pembayaranList={pembayaranList}
+                showToast={showToast}
+                isAdmin={true}
+              />
+            )}
               {activeTab === "nunggak" && (
                 <AdminWargaNunggak
                   wargaOnly={wargaOnly}

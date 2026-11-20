@@ -52,6 +52,7 @@ import {
   Lock,
   Menu,
   X,
+  Search,
 } from "lucide-react";
 
 // ==========================================

@@ -2805,6 +2805,16 @@ const [searchNunggak, setSearchNunggak] = useState("");
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-56">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchNunggak}
+              onChange={(e) => setSearchNunggak(e.target.value)}
+              placeholder="Cari nama / no rumah..."
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+            />
+          </div>
           <button
             type="button"
             onClick={handleExportExcel}

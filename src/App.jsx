@@ -1342,6 +1342,13 @@ const activeProfile = impersonatedWarga || userProfile;
                   showToast={showToast}
                 />
               )}
+              {activeTab === "denah" && (
+            <AdminDenahBlok
+              wargaOnly={wargaOnly}
+              pembayaranList={pembayaranList}
+              isAdmin={false}
+            />
+          )}
               {activeTab === "pengumuman" && (
                 <PengumumanView isAdmin={false} list={pengumumanList} />
               )}

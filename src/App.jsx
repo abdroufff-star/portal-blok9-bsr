@@ -1885,6 +1885,49 @@ function AdminVerifikasi({ pembayaranList, setPreviewImg, showToast }) {
       catatan_admin: catatan,
     });
     showToast(`Pembayaran ${item.warga_nama} diubah menjadi ${status}`);
+
+    // Jika disetujui (Lunas): otomatis unduh kwitansi PNG + buka WA warga
+    if (status === "Lunas") {
+      const nama = item.warga_nama || item.nama || "-";
+      const blok = item.warga_blok || item.blok || "-";
+      const hpRaw = item.warga_hp || item.hp || "";
+      const bulanArr = item.bulan_dibayar || [];
+      const nominal = Number(item.nominal || item.total || bulanArr.length * 25000);
+
+      // 1. Unduh gambar kwitansi PNG otomatis
+      downloadKwitansiPNG({
+        ...item,
+        nama,
+        blok,
+        hp: hpRaw || "-",
+        nominal,
+      });
+
+      // 2. Siapkan pesan WA resmi
+      const tgl = new Date().toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      const pesan = encodeURIComponent(
+        `Assalamu'alaikum Bapak/Ibu *${nama}* (${blok}),\n\n` +
+        `Pembayaran iuran kas BLOK 9 BSR telah kami terima & diverifikasi *LUNAS* ✅\n\n` +
+        `• *Bulan:* ${bulanArr.join(", ") || "-"}\n` +
+        `• *Total:* Rp ${nominal.toLocaleString("id-ID")}\n` +
+        `• *Tanggal:* ${tgl}\n\n` +
+        `Berikut kami lampirkan bukti kwitansinya. Terima kasih 🙏`
+      );
+
+      // Format nomor HP (08xxx -> 628xxx)
+      let waNum = String(hpRaw).replace(/[^0-9]/g, "");
+      if (waNum.startsWith("0")) waNum = "62" + waNum.slice(1);
+
+      const waUrl = waNum
+        ? `https://wa.me/${waNum}?text=${pesan}`
+        : `https://wa.me/?text=${pesan}`;
+
+      window.open(waUrl, "_blank");
+    }
   };
 
   return (

@@ -3901,13 +3901,13 @@ function TataTertibView({ isAdmin, list, showToast }) {
                 <p className="text-sm text-gray-700 leading-relaxed">{item.isi}</p>
               </div>
               {isAdmin && (
-                <button
-                  onClick={() => deleteDoc(doc(db, "tata_tertib", item.id))}
-                  className="text-red-400 hover:text-red-600 shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
+  <button
+    onClick={() => bukaWA(selectedWarga)}
+    className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm"
+  >
+    💬 Ingatkan via WhatsApp
+  </button>
+)}
             </div>
           ))
         )}

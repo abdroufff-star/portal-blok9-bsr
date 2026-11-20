@@ -554,42 +554,83 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [] }) {
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-gray-300 inline-block" /> Tidak Aktif</span>
       </div>
 
-      {/* Grid Kavling Denah (Responsif: 3 kolom di HP, 6-8 di Laptop) */}
+      {/* Denah 2 Baris Berhadapan (Atas Ganjil, Bawah Genap, Urut Kanan -> Kiri) */}
       <div className="bg-slate-50 p-3 sm:p-5 rounded-2xl border-2 border-dashed border-slate-300">
-        <div className="text-center text-[11px] font-bold tracking-widest text-slate-400 uppercase mb-3">
-          ━━━ JALAN UTAMA BLOK 9 BUMI SAFIR RAYA ━━━
-        </div>
-
         {filteredDenah.length === 0 ? (
           <div className="text-center py-8 text-sm text-gray-400">
             Data rumah tidak ditemukan.
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
-            {filteredDenah.map((w) => {
-              const badge = getBadgeStatus(w);
-              return (
-                <button
-                  key={w.id}
-                  onClick={() => setSelectedWarga(w)}
-                  className={`p-2 sm:p-2.5 rounded-xl border-2 text-left transition-all shadow-sm active:scale-95 flex flex-col justify-between min-h-[82px] ${getWarnaKartu(w)}`}
-                >
-                  <div className="flex items-center justify-between gap-1 w-full">
-                    <span className="text-xs sm:text-sm font-black">
-                      No. {w.noRumah !== 9999 ? w.noRumah : "-"}
-                    </span>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold ${badge.cls}`}>
-                      {badge.text}
-                    </span>
-                  </div>
-                  <div className="mt-1.5">
-                    <div className="text-[10px] sm:text-xs font-bold leading-tight line-clamp-2">
-                      {w.nama || "-"}
+          <div className="overflow-x-auto pb-2">
+            {(() => {
+              // Kelompokkan per pasang (1&2, 3&4, 5&6, ...) lalu urutkan dari KANAN ke KIRI
+              const kolomMap = {};
+              filteredDenah.forEach((w) => {
+                const no = w.noRumah !== 9999 ? w.noRumah : 0;
+                const col = Math.ceil(no / 2);
+                if (!kolomMap[col]) kolomMap[col] = { atas: null, bawah: null };
+                if (no % 2 !== 0) kolomMap[col].atas = w; // Ganjil di atas
+                else kolomMap[col].bawah = w; // Genap di bawah
+              });
+
+              // Urutkan kolom terbesar di kiri, kolom 1 (No. 1 & 2) di paling kanan
+              const kolomUrut = Object.keys(kolomMap)
+                .map(Number)
+                .sort((a, b) => b - a);
+
+              const renderRumah = (w) => {
+                if (!w) {
+                  return <div className="w-24 sm:w-28 min-h-[82px] shrink-0" />;
+                }
+                const badge = getBadgeStatus(w);
+                return (
+                  <button
+                    key={w.id}
+                    onClick={() => setSelectedWarga(w)}
+                    className={`w-24 sm:w-28 shrink-0 p-2 rounded-xl border-2 text-left transition-all shadow-sm active:scale-95 flex flex-col justify-between min-h-[82px] ${getWarnaKartu(w)}`}
+                  >
+                    <div className="flex items-center justify-between gap-1 w-full">
+                      <span className="text-xs sm:text-sm font-black">
+                        {w.noRumah !== 9999 ? w.noRumah : "-"}
+                      </span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold ${badge.cls}`}>
+                        {badge.text}
+                      </span>
                     </div>
+                    <div className="mt-1.5">
+                      <div className="text-[10px] sm:text-xs font-bold leading-tight line-clamp-2">
+                        {w.nama || "-"}
+                      </div>
+                    </div>
+                  </button>
+                );
+              };
+
+              return (
+                <div className="inline-flex flex-col min-w-full">
+                  {/* BARIS ATAS (GANJIL: ... 7, 5, 3, 1) */}
+                  <div className="flex gap-2 justify-end">
+                    {kolomUrut.map((col) => (
+                      <div key={`atas-${col}`}>{renderRumah(kolomMap[col].atas)}</div>
+                    ))}
                   </div>
-                </button>
+
+                  {/* JALAN TENGAH */}
+                  <div className="my-2.5 py-2 px-4 rounded-lg bg-slate-200/90 border-y-2 border-dashed border-slate-400 flex items-center justify-between text-[11px] sm:text-xs font-black tracking-[0.2em] text-slate-600 uppercase">
+                    <span>← UJUNG BLOK</span>
+                    <span>JALAN BLOK 9</span>
+                    <span>MASUK (NO. 1 & 2) →</span>
+                  </div>
+
+                  {/* BARIS BAWAH (GENAP: ... 8, 6, 4, 2) */}
+                  <div className="flex gap-2 justify-end">
+                    {kolomUrut.map((col) => (
+                      <div key={`bawah-${col}`}>{renderRumah(kolomMap[col].bawah)}</div>
+                    ))}
+                  </div>
+                </div>
               );
-            })}
+            })()}
           </div>
         )}
       </div>

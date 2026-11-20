@@ -3213,6 +3213,7 @@ function AdminDataWarga({ wargaOnly, showToast, onImpersonateWarga }) {
     const payload = {
       nama: editing.nama,
       blok: editing.blok,
+      username: editing.username || "", // <-- tambahkan baris ini
       hp: editing.hp || "",
       status_rumah: editing.status_rumah || "Milik Sendiri",
       wifi: editing.wifi || "",

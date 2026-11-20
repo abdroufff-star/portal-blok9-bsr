@@ -163,6 +163,13 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const cocokPencarian = (item) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const nama = (item.nama || item.namaWarga || "").toLowerCase();
+    const rumah = (item.noRumah || item.rumah || item.username || "").toLowerCase();
+    return nama.includes(q) || rumah.includes(q);
+  };
   // Login State
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");

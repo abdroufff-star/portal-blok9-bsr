@@ -796,7 +796,7 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], isAdmin = true })
                   onClick={() => bukaWA(selectedWarga)}
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm"
                 >
-                  💬 Ingatkan via WhatsApp
+                  {isAdmin ? "💬 Ingatkan via WhatsApp" : "👋 Sapa Warga"}
                 </button>
               </div>
             )}

@@ -2563,7 +2563,17 @@ const [searchWarga, setSearchWarga] = useState("");
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {wargaOnly.map((w) => (
+            {wargaOnly
+              .filter((w) => {
+                if (!searchWarga.trim()) return true;
+                const q = searchWarga.trim().toLowerCase();
+                return (
+                  (w.nama || "").toLowerCase().includes(q) ||
+                  (w.blok || "").toLowerCase().includes(q) ||
+                  (w.username || "").toLowerCase().includes(q)
+                );
+              })
+              .map((w) => (
               <tr key={w.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3.5 font-bold text-gray-900 whitespace-nowrap">
                   {w.nama}

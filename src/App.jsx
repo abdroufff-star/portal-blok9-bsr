@@ -750,6 +750,14 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], isAdmin = true })
                 <div className="text-xs text-emerald-600 mt-1">
                   Sudah lunas sampai {NAMA_BULAN[bulanIni - 1]} {tahunIni}
                 </div>
+                {!isAdmin && (
+                 <button
+                   onClick={() => bukaWA(selectedWarga)}
+                   className="mt-3 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm"
+                 >
+                   👋 Sapa Warga
+                 </button>
+               )}
               </div>
             ) : (
               <div className="space-y-3">

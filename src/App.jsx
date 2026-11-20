@@ -2346,6 +2346,8 @@ function AdminDataWarga({ wargaOnly, showToast, onImpersonateWarga }) {
     showToast("Data warga diperbarui.");
   };
 
+const [searchWarga, setSearchWarga] = useState("");
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2355,6 +2357,17 @@ function AdminDataWarga({ wargaOnly, showToast, onImpersonateWarga }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-56">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchWarga}
+              onChange={(e) => setSearchWarga(e.target.value)}
+              placeholder="Cari nama / no rumah..."
+              className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-300 text-xs focus:ring-2 focus:ring-orange-500 outline-none bg-white"
+            />
+          </div>
+
           <button
             type="button"
             onClick={handleExportExcel}
@@ -2763,7 +2776,14 @@ function AdminWargaNunggak({ wargaOnly, pembayaranList }) {
     `);
     win.document.close();
   };
-
+const [searchNunggak, setSearchNunggak] = useState("");
+  const filteredNunggak = listNunggak.filter((item) => {
+    if (!searchNunggak.trim()) return true;
+    const q = searchNunggak.toLowerCase();
+    const nama = (item.nama || item.namaWarga || "").toLowerCase();
+    const rumah = (item.noRumah || item.rumah || item.username || "").toLowerCase();
+    return nama.includes(q) || rumah.includes(q);
+  });
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

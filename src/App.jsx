@@ -3284,6 +3284,24 @@ const [searchWarga, setSearchWarga] = useState("");
           >
             <Download className="w-4 h-4" /> Export PDF
           </button>
+          <button
+         type="button"
+         onClick={() =>
+           setEditing({
+             nama: "",
+             blok: "Blok 9 No. ",
+             hp: "",
+             status_rumah: "Milik Sendiri",
+             wifi: "",
+             asal: "",
+             isi_rumah: "",
+             status: "Aktif",
+           })
+         }
+         className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm"
+       >
+         + Tambah Warga
+       </button>
 
           <label
             className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer ${

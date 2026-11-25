@@ -598,8 +598,7 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-500 inline-block" /> Nunggak ≥3 Bln</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-gray-300 inline-block" /> Tidak Aktif</span>
       </div>
-
-      {/* Denah 2 Baris Rapi + Kompas Utara & Perempatan Lurus */}
+{/* Denah 2 Baris Rapi + Kompas Utara, Rapat Taman & Support Merge */}
       <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm">
         {filteredDenah.length === 0 ? (
           <div className="text-center py-8 text-sm text-gray-400">
@@ -608,40 +607,42 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
         ) : (
           <div className="overflow-x-auto pb-2">
             {(() => {
-              const KOLOM_GANG = 17; // Posisi gang setelah No. 33 & 34
+              const BATAS_GANG = 34; // No. 33 & 34 ke bawah di kanan, No. 35 & 36 ke atas di kiri
 
-              const kolomMap = {};
-              filteredDenah.forEach((w) => {
-                const no = w.noRumah !== 9999 ? w.noRumah : 0;
-                const col = Math.ceil(no / 2);
-                if (!kolomMap[col]) kolomMap[col] = { atas: null, bawah: null };
-                if (no % 2 !== 0) kolomMap[col].atas = w;
-                else kolomMap[col].bawah = w;
-              });
+              const semuaRumah = [...filteredDenah].sort(
+                (a, b) => (b.noRumah || 0) - (a.noRumah || 0)
+              );
 
-              const semuaKolom = Object.keys(kolomMap)
-                .map(Number)
-                .sort((a, b) => b - a);
+              const atasKiri = semuaRumah.filter((w) => w.noRumah > BATAS_GANG && w.noRumah % 2 !== 0);
+              const bawahKiri = semuaRumah.filter((w) => w.noRumah > BATAS_GANG && w.noRumah % 2 === 0);
+              const atasKanan = semuaRumah.filter((w) => w.noRumah <= BATAS_GANG && w.noRumah % 2 !== 0);
+              const bawahKanan = semuaRumah.filter((w) => w.noRumah <= BATAS_GANG && w.noRumah % 2 === 0);
 
-              const kolomKiri = semuaKolom.filter((c) => c > KOLOM_GANG);
-              const kolomKanan = semuaKolom.filter((c) => c <= KOLOM_GANG);
+              const adaKiri = atasKiri.length > 0 || bawahKiri.length > 0;
+              const adaKanan = atasKanan.length > 0 || bawahKanan.length > 0;
 
               const renderRumah = (w) => {
-                if (!w) {
-                  return <div className="w-24 sm:w-28 h-[86px] shrink-0" />;
-                }
                 const badge = getBadgeStatus(w);
+                const isMerged = Boolean(w.is_merged);
+                const labelNo = isMerged
+                  ? (w.blok || "").replace(/.*no\.?\s*/i, "").trim() || w.noRumah
+                  : w.noRumah !== 9999
+                  ? w.noRumah
+                  : "-";
+
                 return (
                   <button
                     key={w.id}
                     onClick={() => setSelectedWarga(w)}
-                    className={`w-24 sm:w-28 h-[86px] shrink-0 p-2 rounded-xl border text-left transition-all shadow-sm hover:shadow active:scale-95 flex flex-col justify-between ${getWarnaKartu(w)}`}
+                    className={`${
+                      isMerged ? "w-[200px] sm:w-[232px]" : "w-24 sm:w-28"
+                    } h-[86px] shrink-0 p-2 rounded-xl border text-left transition-all shadow-sm hover:shadow active:scale-95 flex flex-col justify-between ${getWarnaKartu(w)}`}
                   >
                     <div className="flex items-center justify-between gap-1 w-full">
-                      <span className="text-xs sm:text-sm font-black">
-                        {w.noRumah !== 9999 ? w.noRumah : "-"}
+                      <span className="text-xs sm:text-sm font-black truncate">
+                        {labelNo}
                       </span>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold ${badge.cls}`}>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold shrink-0 ${badge.cls}`}>
                         {badge.text}
                       </span>
                     </div>
@@ -667,7 +668,7 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
                   </div>
 
                   {/* SISI KIRI GANG (TAMAN + RUMAH KIRI + AREA MASJID) */}
-                  {kolomKiri.length > 0 && (
+                  {adaKiri && (
                     <div className="flex flex-col shrink-0">
                       {/* Baris Atas Kiri: Taman + Jalan Blok 10 + Ganjil */}
                       <div className="flex items-stretch">
@@ -684,10 +685,8 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
                             <span>JALAN BLOK 10</span>
                             <span>JALAN BLOK 10</span>
                           </div>
-                          <div className="flex items-stretch justify-end gap-2 py-2.5 pr-2.5 border-b border-dashed border-slate-300">
-                            {kolomKiri.map((col) => (
-                              <div key={`atas-${col}`}>{renderRumah(kolomMap[col].atas)}</div>
-                            ))}
+                          <div className="flex items-stretch justify-end gap-2 py-2.5 pl-1 pr-2.5 border-b border-dashed border-slate-300">
+                            {atasKiri.map((w) => renderRumah(w))}
                           </div>
                         </div>
                       </div>
@@ -705,12 +704,10 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
                       <div className="flex items-stretch">
                         <div className="w-14 shrink-0 mr-2 bg-slate-200/80 rounded-b-md" />
                         <div className="flex flex-col flex-1">
-                          <div className="flex items-stretch justify-end gap-2 py-2.5 pr-2.5 border-t border-dashed border-slate-300">
-                            {kolomKiri.map((col) => (
-                              <div key={`bawah-${col}`}>{renderRumah(kolomMap[col].bawah)}</div>
-                            ))}
-                            {kolomKanan.length > 0 && (
-                              <div className="w-44 sm:w-52 h-[86px] shrink-0 rounded-xl bg-sky-50 border-2 border-sky-400 flex flex-col items-center justify-center px-2 text-center shadow-sm">
+                          <div className="flex items-stretch justify-end gap-2 py-2.5 pl-1 pr-2.5 border-t border-dashed border-slate-300">
+                            {bawahKiri.map((w) => renderRumah(w))}
+                            {adaKanan && (
+                              <div className="w-[200px] sm:w-[232px] h-[86px] shrink-0 rounded-xl bg-sky-50 border-2 border-sky-400 flex flex-col items-center justify-center px-2 text-center shadow-sm">
                                 <span className="text-base">🕌</span>
                                 <span className="text-[11px] sm:text-xs font-black text-sky-900 uppercase tracking-wider">
                                   AREA MASJID
@@ -724,43 +721,34 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
                     </div>
                   )}
 
-                  {/* GANG TENGAH (SATU JALUR LURUS DARI ATAS KE BAWAH) */}
-                  {kolomKiri.length > 0 && kolomKanan.length > 0 && (
+                  {/* GANG TENGAH LURUS */}
+                  {adaKiri && adaKanan && (
                     <div className="w-10 shrink-0 bg-slate-200/80 rounded-bl-md" />
                   )}
 
                   {/* SISI KANAN GANG (NO. 33/34 SAMPAI NO. 1/2) */}
-                  {kolomKanan.length > 0 && (
+                  {adaKanan && (
                     <div className="flex flex-col shrink-0">
-                      {/* Jalan Blok 10 (Sisi Kanan) */}
                       <div className="h-7 bg-slate-200/80 px-6 flex items-center justify-around text-[10px] font-bold tracking-[0.25em] text-slate-500 uppercase">
                         <span>JALAN BLOK 10</span>
                         <span>JALAN BLOK 10</span>
                         <span>JALAN BLOK 10</span>
                       </div>
 
-                      {/* Baris Atas Kanan (Ganjil) */}
                       <div className="flex items-stretch gap-2 py-2.5 px-2.5 border-b border-dashed border-slate-300">
-                        {kolomKanan.map((col) => (
-                          <div key={`atas-${col}`}>{renderRumah(kolomMap[col].atas)}</div>
-                        ))}
+                        {atasKanan.map((w) => renderRumah(w))}
                       </div>
 
-                      {/* Jalan Blok 9 (Sisi Kanan) */}
                       <div className="h-9 bg-slate-200/80 px-6 flex items-center justify-around text-[11px] font-extrabold tracking-[0.25em] text-slate-600 uppercase">
                         <span>JALAN BLOK 9</span>
                         <span>JALAN BLOK 9</span>
                         <span>JALAN BLOK 9</span>
                       </div>
 
-                      {/* Baris Bawah Kanan (Genap) */}
                       <div className="flex items-stretch gap-2 py-2.5 px-2.5 border-t border-dashed border-slate-300">
-                        {kolomKanan.map((col) => (
-                          <div key={`bawah-${col}`}>{renderRumah(kolomMap[col].bawah)}</div>
-                        ))}
+                        {bawahKanan.map((w) => renderRumah(w))}
                       </div>
 
-                      {/* Jalan Blok 8 (Sisi Kanan) */}
                       <div className="h-7 bg-slate-200/80 px-6 flex items-center justify-around text-[10px] font-bold tracking-[0.25em] text-slate-500 uppercase">
                         <span>JALAN BLOK 8</span>
                         <span>JALAN BLOK 8</span>
@@ -769,7 +757,7 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
                     </div>
                   )}
 
-                  {/* JALAN UJUNG KANAN (DEPAN NO. 1 & 2) */}
+                  {/* JALAN UJUNG KANAN */}
                   <div className="w-8 shrink-0 bg-slate-200/80 rounded-r-md flex items-center justify-center">
                     <span className="text-[10px] font-extrabold text-slate-600 tracking-widest uppercase [writing-mode:vertical-rl] rotate-180">
                       JALAN
@@ -781,7 +769,6 @@ function AdminDenahBlok({ wargaOnly = [], pembayaranList = [], showToast, isAdmi
           </div>
         )}
       </div>
-
       {/* Popup Detail Saat Rumah Diklik */}
       {selectedWarga && (
         <div

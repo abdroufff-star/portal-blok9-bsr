@@ -3195,18 +3195,19 @@ function AdminDataWarga({ wargaOnly, showToast, onImpersonateWarga }) {
     }
   };
 
-  const handleSaveEdit = async (e) => {
+const handleSaveEdit = async (e) => {
     e.preventDefault();
     const payload = {
       nama: editing.nama,
       blok: editing.blok,
-      username: editing.username || "", // <-- tambahkan baris ini
+      username: editing.username || "",
       hp: editing.hp || "",
       status_rumah: editing.status_rumah || "Milik Sendiri",
       wifi: editing.wifi || "",
       asal: editing.asal || "",
       isi_rumah: editing.isi_rumah || "",
       status: editing.status || "Aktif",
+      is_merged: Boolean(editing.is_merged),
     };
 
     if (editing.id) {
